@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Carnet CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : rail de navigation à gauche + espace de travail ; sur mobile, onglets en haut */
+:root{
+  --bg:#f3f4f7; --surface:#ffffff; --sunk:#e9ebf1; --line:#d8dbe4;
+  --fg:#161a27; --muted:#5d6377; --accent:#2f4bd8; --accent-soft:#e3e8ff; --on-accent:#fff;
+  --ok:#1d7a4f; --ok-soft:#dcf2e6; --warn:#a2610a; --warn-soft:#fbecd3; --bad:#b4323a; --bad-soft:#fadfe1;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#10131c; --surface:#181c28; --sunk:#0c0f16; --line:#2a2f40;
+  --fg:#e6e8f0; --muted:#9298ad; --accent:#7d93ff; --accent-soft:#232c55; --on-accent:#0d1020;
+  --ok:#5fcf98; --ok-soft:#163327; --warn:#f0b357; --warn-soft:#382a12; --bad:#f07c84; --bad-soft:#3b1b1f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#10131c; --surface:#181c28; --sunk:#0c0f16; --line:#2a2f40;
+  --fg:#e6e8f0; --muted:#9298ad; --accent:#7d93ff; --accent-soft:#232c55; --on-accent:#0d1020;
+  --ok:#5fcf98; --ok-soft:#163327; --warn:#f0b357; --warn-soft:#382a12; --bad:#f07c84; --bad-soft:#3b1b1f; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--f-body)}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100%}
+nav.rail{background:var(--surface);border-right:1px solid var(--line);padding:22px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:env(safe-area-inset-top,0px);height:100vh}
+.brand{font:700 22px/1 var(--f-display);letter-spacing:-.02em;padding:0 10px 18px;display:flex;align-items:center;gap:8px}
+.brand i{width:12px;height:12px;border-radius:3px;background:var(--accent);display:inline-block;transform:rotate(45deg)}
+.tab{all:unset;cursor:pointer;padding:9px 12px;border-radius:8px;color:var(--muted);font-weight:500;display:flex;justify-content:space-between;align-items:center}
+.tab:hover{background:var(--sunk);color:var(--fg)}
+.tab[aria-current="page"]{background:var(--accent-soft);color:var(--accent)}
+.tab:focus-visible,.btn:focus-visible,.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.count{font:500 12px var(--f-mono);opacity:.8}
+.rail .foot{margin-top:auto;font-size:12px;color:var(--muted);padding:0 10px;display:grid;gap:8px}
+main{padding-block:28px 60px;padding-inline:32px;min-width:0}
+.head{display:flex;flex-wrap:wrap;gap:12px;align-items:end;justify-content:space-between;margin-bottom:22px}
+h1{font:700 30px/1.1 var(--f-display);letter-spacing:-.02em;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0}
+h2{font:600 13px var(--f-body);text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 12px}
+.btn{all:unset;cursor:pointer;padding:9px 14px;border-radius:8px;font-weight:600;font-size:14px;background:var(--accent);color:var(--on-accent);display:inline-flex;gap:6px;align-items:center}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--sunk)}
+.btn.danger{background:var(--bad);color:var(--on-accent)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+input[type=search],.field input,.field select,.field textarea,select.inline{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 11px;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+.demo{font-size:12.5px;background:var(--warn-soft);color:var(--warn);padding:7px 12px;border-radius:8px;margin-bottom:18px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+.demo button{all:unset;cursor:pointer;text-decoration:underline;font-weight:600}
+
+/* Tableau de bord */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--r);background:var(--surface);margin-bottom:26px}
+.kpi{padding:16px 18px;border-left:1px solid var(--line)}
+.kpi:first-child{border-left:0}
+.kpi .v{font:500 26px/1.2 var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.kpi .l{font-size:13px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:26px}
+.funnel{display:grid;gap:9px}
+.frow{display:grid;grid-template-columns:120px 1fr 92px;gap:12px;align-items:center;font-size:14px}
+.fbar{height:22px;background:var(--sunk);border-radius:5px;overflow:hidden}
+.fbar span{display:block;height:100%;background:var(--accent);border-radius:5px;min-width:3px}
+.frow.won .fbar span{background:var(--ok)} .frow.lost .fbar span{background:var(--bad)}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums;text-align:right;font-size:13px}
+.list{display:grid;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);overflow:hidden}
+.item{display:grid;grid-template-columns:auto 1fr auto;gap:12px;padding:11px 14px;border-top:1px solid var(--line);align-items:center}
+.item:first-child{border-top:0}
+.item .t{font-weight:500} .item .m{font-size:13px;color:var(--muted)}
+.check{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+.empty{padding:22px;color:var(--muted);text-align:center;font-size:14px}
+
+.onboard{margin-bottom:26px}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.steps li{display:grid;grid-template-columns:24px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.steps li:first-child{border-top:0}
+.steps .dot{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:12px;font-weight:700}
+.steps li.ok .dot{background:var(--ok);border-color:var(--ok);color:var(--on-accent)}
+.steps li.ok span:nth-child(2){color:var(--muted);text-decoration:line-through}
+.colempty{margin:6px 4px;font-size:13px;color:var(--muted)}
+.rail .foot{gap:2px}
+
+/* Pills */
+.pill{font:500 12px/1 var(--f-body);padding:4px 8px;border-radius:99px;white-space:nowrap;display:inline-block}
+.p-prospect{background:var(--accent-soft);color:var(--accent)}
+.p-client{background:var(--ok-soft);color:var(--ok)}
+.p-perdu{background:var(--bad-soft);color:var(--bad)}
+.late{color:var(--bad);font-weight:600}
+.today{color:var(--warn);font-weight:600}
+
+/* Pipeline */
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--sunk);border-radius:var(--r);padding:10px;display:flex;flex-direction:column;gap:8px;min-height:260px}
+.col.over{outline:2px dashed var(--accent);outline-offset:-2px}
+.colh{display:flex;justify-content:space-between;align-items:baseline;padding:2px 4px 6px;font-weight:600;font-size:14px}
+.colh .num{color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:grab;display:grid;gap:4px}
+.card:active{cursor:grabbing}
+.card .t{font-weight:600;font-size:14px}
+.card .m{font-size:12.5px;color:var(--muted)}
+.card .row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card select{font-size:12px;padding:2px 4px;border-radius:6px;border:1px solid var(--line);background:var(--surface);max-width:120px}
+
+/* Contacts */
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--surface)}
+td{padding:11px 14px;border-top:1px solid var(--line)}
+tbody tr{cursor:pointer} tbody tr:hover{background:var(--sunk)}
+td .t{font-weight:600} td .m{font-size:13px;color:var(--muted)}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.filters input{flex:1 1 220px} .filters select{flex:0 0 auto;width:auto}
+
+/* Fiche contact */
+.sheet{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:26px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+dl{display:grid;grid-template-columns:110px 1fr;gap:8px 12px;margin:0;font-size:14px}
+dt{color:var(--muted)} dd{margin:0;overflow-wrap:anywhere}
+.timeline{display:grid;gap:0;margin-top:12px}
+.tl{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.tl:first-child{border-top:0}
+.ico{width:28px;height:28px;border-radius:50%;background:var(--sunk);display:grid;place-items:center;font:600 11px var(--f-mono);color:var(--muted)}
+.back{all:unset;cursor:pointer;color:var(--muted);font-size:14px;margin-bottom:10px;display:inline-block}
+.back:hover{color:var(--fg)}
+
+/* Modale */
+dialog{border:0;border-radius:14px;padding:0;background:var(--surface);color:var(--fg);width:min(520px,calc(100vw - 32px));box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(10,12,20,.45)}
+.mform{padding:22px;display:grid;gap:14px}
+.mform h3{font:700 20px var(--f-display);margin:0}
+.field{display:grid;gap:5px;font-size:13px;color:var(--muted)}
+.field>*:last-child{color:var(--fg);font-size:15px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:4px}
+.err{color:var(--bad);font-size:13px;min-height:1em;margin:0}
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:8px;font-size:14px;font-weight:500;z-index:50}
+
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  nav.rail{height:auto;flex-direction:row;flex-wrap:wrap;padding:12px 16px;border-right:0;border-bottom:1px solid var(--line);z-index:5;align-items:center}
+  .brand{padding:0 10px 0 0;font-size:19px}
+  .rail .foot{display:none}
+  .tab{padding:7px 10px}
+  .tab .count{display:none}
+  main{padding-inline:16px;padding-block:20px 50px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi:nth-child(3){border-left:0}
+  .kpi:nth-child(n+3){border-top:1px solid var(--line)}
+  .grid2,.sheet{grid-template-columns:1fr}
+  .two{grid-template-columns:1fr}
+  .frow{grid-template-columns:96px 1fr 80px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head>
+<body>
+<div class="app">
+  <nav class="rail" aria-label="Navigation principale">
+    <div class="brand"><i></i>Carnet</div>
+    <button class="tab" data-view="dash">Tableau de bord</button>
+    <button class="tab" data-view="pipe">Pipeline <span class="count" id="c-pipe"></span></button>
+    <button class="tab" data-view="contacts">Contacts <span class="count" id="c-contacts"></span></button>
+    <button class="tab" data-view="tasks">Relances <span class="count" id="c-tasks"></span></button>
+    <button class="tab" data-view="settings">Paramètres</button>
+    <div class="foot"><span>Espace de</span><strong id="co-name" style="color:var(--fg);font-weight:600;overflow-wrap:anywhere"></strong></div>
+  </nav>
+  <main id="main"></main>
+</div>
+
+<dialog id="dlg"><form class="mform" id="mform" novalidate></form></dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+const STAGES=[["nouveau","Nouveau"],["contacte","Contacté"],["devis","Devis envoyé"],["nego","Négociation"],["gagne","Gagné"],["perdu","Perdu"]];
+const STAGE_LABEL=Object.fromEntries(STAGES);
+const STATUTS={prospect:"Prospect",client:"Client",perdu:"Perdu"};
+const TYPES={appel:"Appel",email:"E-mail",rdv:"Rendez-vous",note:"Note"};
+const KEY="carnet-crm-v2";
+const DAY=864e5;
+const iso=d=>new Date(d).toISOString().slice(0,10);
+const rel=n=>iso(Date.now()+n*DAY);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const eur=n=>new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0}).format(n||0);
+const fdate=s=>s?new Date(s+"T12:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"}):"—";
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const blank=()=>({company:"",contacts:[],opps:[],acts:[]});
+let db;
+try{db=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!db||!Array.isArray(db.contacts))db=blank();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+function brand(){document.getElementById("co-name").textContent=db.company||"Entreprise non renseignée"}
+
+let state={view:"dash",contactId:null,q:"",statut:""};
+const main=document.getElementById("main");
+const contact=id=>db.contacts.find(c=>c.id===id);
+
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2200)}
+
+function demoBanner(){return ""}
+
+function welcome(){
+  const steps=[
+    [!!db.company,"Renseigner le nom de votre entreprise","settings"],
+    [db.contacts.length>0,"Ajouter votre premier client ou prospect","new-contact"],
+    [db.opps.length>0,"Créer une première opportunité commerciale","new-opp"],
+    [db.acts.length>0,"Planifier une relance (appel, e-mail, rendez-vous)","new-act"]
+  ];
+  if(steps.every(s=>s[0]))return "";
+  const done=steps.filter(s=>s[0]).length;
+  return `<section class="panel onboard"><div><h2>Mise en route · ${done}/4</h2>
+  <p style="margin:0 0 12px;color:var(--muted)">Le CRM est vide. Suivez ces étapes pour y entrer les informations de votre entreprise.</p></div>
+  <ol class="steps">${steps.map(([ok,l,act])=>`<li class="${ok?"ok":""}"><span class="dot">${ok?"✓":""}</span><span>${l}</span>${ok?"":`<button class="btn ghost sm" ${act==="settings"?'data-act="go" data-view="settings"':`data-act="${act}"`}>Commencer</button>`}</li>`).join("")}</ol></section>`;
+}
+
+function dueClass(a){if(a.faite)return"";const t=iso(Date.now());return a.date<t?"late":a.date===t?"today":""}
+function dueText(a){const c=dueClass(a);return c==="late"?"En retard · "+fdate(a.date):c==="today"?"Aujourd'hui":fdate(a.date)}
+
+function counts(){
+  document.getElementById("c-pipe").textContent=db.opps.filter(o=>!["gagne","perdu"].includes(o.etape)).length;
+  document.getElementById("c-contacts").textContent=db.contacts.length;
+  document.getElementById("c-tasks").textContent=db.acts.filter(a=>!a.faite).length;
+}
+
+function render(){
+  document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-current",b.dataset.view===state.view?"page":"false"));
+  counts();brand();
+  main.innerHTML=({dash,pipe,contacts,tasks,fiche,settings})[state.view]();
+}
+
+function dash(){
+  const open=db.opps.filter(o=>!["gagne","perdu"].includes(o.etape));
+  const won=db.opps.filter(o=>o.etape==="gagne"), lost=db.opps.filter(o=>o.etape==="perdu");
+  const rate=won.length+lost.length?Math.round(won.length/(won.length+lost.length)*100):0;
+  const max=Math.max(1,...STAGES.map(([k])=>db.opps.filter(o=>o.etape===k).reduce((s,o)=>s+o.montant,0)));
+  const funnel=STAGES.map(([k,l])=>{const os=db.opps.filter(o=>o.etape===k);const v=os.reduce((s,o)=>s+o.montant,0);
+    return `<div class="frow ${k==="gagne"?"won":k==="perdu"?"lost":""}"><span>${l} <span class="count">(${os.length})</span></span><div class="fbar"><span style="width:${v/max*100}%"></span></div><span class="num">${eur(v)}</span></div>`}).join("");
+  const todo=db.acts.filter(a=>!a.faite).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,5);
+  return `<div class="head"><div><h1>Tableau de bord</h1><p class="sub">${db.company?esc(db.company)+" · v":"V"}ue d'ensemble de l'activité commerciale.</p></div>
+  <div class="tools"><button class="btn ghost" data-act="new-contact">Nouveau contact</button><button class="btn" data-act="new-opp">Nouvelle opportunité</button></div></div>
+  <div class="kpis">
+    <div class="kpi"><div class="v">${eur(open.reduce((s,o)=>s+o.montant,0))}</div><div class="l">Pipeline en cours (${open.length})</div></div>
+    <div class="kpi"><div class="v">${eur(won.reduce((s,o)=>s+o.montant,0))}</div><div class="l">Chiffre signé</div></div>
+    <div class="kpi"><div class="v">${rate} %</div><div class="l">Taux de transformation</div></div>
+    <div class="kpi"><div class="v">${db.contacts.filter(c=>c.statut==="client").length} / ${db.contacts.length}</div><div class="l">Clients / contacts</div></div>
+  </div>${welcome()}
+  <div class="grid2"><section><h2>Montant par étape</h2><div class="funnel">${funnel}</div></section>
+  <section><h2>Prochaines relances</h2><div class="list">${todo.length?todo.map(actRow).join(""):`<div class="empty">Aucune relance prévue.</div>`}</div></section></div>`;
+}
+
+function actRow(a){
+  const c=contact(a.contactId);
+  return `<div class="item"><input type="checkbox" class="check" id="chk-${a.id}" data-act="toggle" data-id="${a.id}" ${a.faite?"checked":""} aria-label="Marquer comme faite">
+  <div style="min-width:0"><div class="t" style="${a.faite?"text-decoration:line-through;color:var(--muted)":""}">${esc(a.texte)}</div><div class="m">${TYPES[a.type]} · <a href="#" data-act="open" data-id="${a.contactId}" style="color:inherit">${esc(c?c.entreprise:"Contact supprimé")}</a></div></div>
+  <span class="m ${dueClass(a)}" style="font-size:13px">${dueText(a)}</span></div>`;
+}
+
+function pipe(){
+  const cols=STAGES.map(([k,l])=>{const os=db.opps.filter(o=>o.etape===k);
+    return `<div class="col" data-stage="${k}"><div class="colh"><span>${l}</span><span class="num">${eur(os.reduce((s,o)=>s+o.montant,0))}</span></div>
+    ${os.map(o=>{const c=contact(o.contactId);return `<div class="card" draggable="true" data-id="${o.id}" tabindex="0">
+      <div class="t">${esc(o.titre)}</div><div class="m">${esc(c?c.entreprise:"—")}</div>
+      <div class="row"><span class="num" style="text-align:left">${eur(o.montant)}</span>
+      <select id="mv-${o.id}" data-act="move" data-id="${o.id}" aria-label="Changer d'étape">${STAGES.map(([sk,sl])=>`<option value="${sk}" ${sk===k?"selected":""}>${sl}</option>`).join("")}</select></div>
+      <div class="m">Clôture prévue : ${fdate(o.cloture)}</div></div>`}).join("")||`<p class="colempty">Aucune opportunité</p>`}</div>`}).join("");
+  return `${demoBanner()}<div class="head"><div><h1>Pipeline</h1><p class="sub">Glissez une carte d'une colonne à l'autre, ou changez son étape dans le menu.</p></div>
+  <button class="btn" data-act="new-opp">Nouvelle opportunité</button></div><div class="board">${cols}</div>`;
+}
+
+function contacts(){
+  const q=state.q.toLowerCase();
+  const rows=db.contacts.filter(c=>(!state.statut||c.statut===state.statut)&&(!q||[c.nom,c.entreprise,c.ville,c.email,c.tag].join(" ").toLowerCase().includes(q)))
+    .sort((a,b)=>a.entreprise.localeCompare(b.entreprise));
+  return `${demoBanner()}<div class="head"><div><h1>Contacts</h1><p class="sub">${db.contacts.length} fiches enregistrées.</p></div><button class="btn" data-act="new-contact">Nouveau contact</button></div>
+  <div class="filters"><input type="search" id="q" placeholder="Rechercher un nom, une entreprise, une ville…" value="${esc(state.q)}">
+  <select class="inline" id="fstatut"><option value="">Tous les statuts</option>${Object.entries(STATUTS).map(([k,l])=>`<option value="${k}" ${state.statut===k?"selected":""}>${l}</option>`).join("")}</select></div>
+  <div class="table-wrap"><table><thead><tr><th>Entreprise</th><th>Contact</th><th>Ville</th><th>Statut</th><th style="text-align:right">Pipeline</th></tr></thead><tbody>
+  ${!db.contacts.length?`<tr><td colspan="5" class="empty">Aucun contact pour l'instant. Ajoutez votre premier client ou prospect avec « Nouveau contact ».</td></tr>`:""}
+  ${rows.map(c=>{const v=db.opps.filter(o=>o.contactId===c.id&&!["gagne","perdu"].includes(o.etape)).reduce((s,o)=>s+o.montant,0);
+    return `<tr data-act="open" data-id="${c.id}" tabindex="0"><td><div class="t">${esc(c.entreprise)}</div><div class="m">${esc(c.tag||"")}</div></td><td>${esc(c.nom)}<div class="m">${esc(c.email)}</div></td><td>${esc(c.ville)}</td><td><span class="pill p-${c.statut}">${STATUTS[c.statut]}</span></td><td class="num">${v?eur(v):"—"}</td></tr>`}).join("")||(db.contacts.length?`<tr><td colspan="5" class="empty">Aucun contact ne correspond à la recherche.</td></tr>`:"")}
+  </tbody></table></div>`;
+}
+
+function tasks(){
+  const todo=db.acts.filter(a=>!a.faite).sort((a,b)=>a.date.localeCompare(b.date));
+  const done=db.acts.filter(a=>a.faite).sort((a,b)=>b.date.localeCompare(a.date));
+  return `${demoBanner()}<div class="head"><div><h1>Relances</h1><p class="sub">Appels, e-mails et rendez-vous à faire.</p></div><button class="btn" data-act="new-act">Nouvelle activité</button></div>
+  <section style="margin-bottom:26px"><h2>À faire (${todo.length})</h2><div class="list">${todo.map(actRow).join("")||`<div class="empty">Tout est à jour.</div>`}</div></section>
+  <section><h2>Historique</h2><div class="list">${done.map(actRow).join("")||`<div class="empty">Aucune activité terminée.</div>`}</div></section>`;
+}
+
+function fiche(){
+  const c=contact(state.contactId); if(!c){state.view="contacts";return contacts()}
+  const os=db.opps.filter(o=>o.contactId===c.id);
+  const as=db.acts.filter(a=>a.contactId===c.id).sort((a,b)=>b.date.localeCompare(a.date));
+  return `<button class="back" data-act="go" data-view="contacts">← Contacts</button>
+  <div class="head"><div><h1>${esc(c.entreprise)}</h1><p class="sub">${esc(c.nom)} · <span class="pill p-${c.statut}">${STATUTS[c.statut]}</span></p></div>
+  <div class="tools"><button class="btn ghost" data-act="edit-contact" data-id="${c.id}">Modifier</button><button class="btn ghost" data-act="del-contact" data-id="${c.id}">Supprimer</button></div></div>
+  <div class="sheet"><div style="display:grid;gap:18px;align-content:start">
+  <div class="panel"><h2>Coordonnées</h2><dl><dt>E-mail</dt><dd>${esc(c.email)||"—"}</dd><dt>Téléphone</dt><dd>${esc(c.tel)||"—"}</dd><dt>Ville</dt><dd>${esc(c.ville)||"—"}</dd><dt>Besoin</dt><dd>${esc(c.tag)||"—"}</dd><dt>Créé le</dt><dd>${fdate(c.cree)}</dd></dl></div>
+  <div class="panel"><div class="row" style="display:flex;justify-content:space-between;align-items:baseline"><h2>Opportunités</h2><button class="btn ghost sm" data-act="new-opp" data-cid="${c.id}">Ajouter</button></div>
+  ${os.length?os.map(o=>`<div class="item" style="grid-template-columns:1fr auto;padding:9px 0"><div><div class="t">${esc(o.titre)}</div><div class="m">${STAGE_LABEL[o.etape]} · clôture ${fdate(o.cloture)}</div></div><span class="num">${eur(o.montant)}</span></div>`).join(""):`<p class="m" style="color:var(--muted);margin:0">Aucune opportunité.</p>`}</div></div>
+  <div class="panel"><div style="display:flex;justify-content:space-between;align-items:baseline"><h2>Historique des échanges</h2><button class="btn sm" data-act="new-act" data-cid="${c.id}">Ajouter une activité</button></div>
+  <div class="timeline">${as.map(a=>`<div class="tl"><span class="ico">${TYPES[a.type].slice(0,2).toUpperCase()}</span><div><div style="font-weight:500">${esc(a.texte)}</div><div style="font-size:13px;color:var(--muted)">${TYPES[a.type]} · <span class="${dueClass(a)}">${a.faite?fdate(a.date)+" · fait":dueText(a)}</span></div></div></div>`).join("")||`<p style="color:var(--muted)">Aucun échange enregistré.</p>`}</div></div></div>`;
+}
+
+function settings(){
+  return `<div class="head"><div><h1>Paramètres</h1><p class="sub">Informations de l'entreprise et sauvegarde des données.</p></div></div>
+  <div class="sheet" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
+  <form class="panel" id="setform" style="display:grid;gap:12px;align-content:start"><h2>Entreprise</h2>
+    ${f("Nom de l'entreprise",`<input name="company" id="s-co" value="${esc(db.company)}" placeholder="ex. Dupont Plomberie SARL">`)}
+    ${f("Secteur d'activité",`<input name="secteur" id="s-sec" value="${esc(db.secteur||"")}" placeholder="ex. bâtiment, conseil, commerce">`)}
+    ${f("E-mail de contact",`<input name="coemail" id="s-mail" type="email" value="${esc(db.coemail||"")}">`)}
+    <div><button class="btn" type="submit">Enregistrer</button></div></form>
+  <div style="display:grid;gap:18px;align-content:start">
+  <div class="panel" style="display:grid;gap:10px"><h2>Sauvegarde</h2>
+    <p style="margin:0;color:var(--muted);font-size:14px">Les données sont enregistrées dans ce navigateur. Copiez la sauvegarde et gardez-la en lieu sûr, puis collez-la ici pour la restaurer sur un autre poste.</p>
+    <textarea id="s-backup" rows="4" style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 11px;font:13px var(--f-mono);width:100%" placeholder="Collez ici une sauvegarde pour la restaurer"></textarea>
+    <div class="tools"><button class="btn ghost" data-act="copy">Copier la sauvegarde</button><button class="btn ghost" data-act="restore">Restaurer</button></div></div>
+  <div class="panel" style="display:grid;gap:10px"><h2>Zone sensible</h2>
+    <p style="margin:0;color:var(--muted);font-size:14px">Efface tous les contacts, opportunités et relances de ce navigateur.</p>
+    <div><button class="btn danger" data-act="wipe">Effacer toutes les données</button></div></div></div></div>`;
+}
+
+/* ---------- Formulaires ---------- */
+const dlg=document.getElementById("dlg"), form=document.getElementById("mform");
+let onSubmit=null;
+function modal(html,submit){form.innerHTML=html+`<p class="err" id="ferr"></p>`;onSubmit=submit;dlg.showModal();const f=form.querySelector("input,select,textarea");f&&f.focus()}
+form.addEventListener("submit",e=>{e.preventDefault();const data=Object.fromEntries(new FormData(form));const err=onSubmit&&onSubmit(data);if(err){document.getElementById("ferr").textContent=err;return}dlg.close();render()});
+form.addEventListener("click",e=>{if(e.target.dataset.close!==undefined){e.preventDefault();dlg.close()}});
+const f=(label,inner)=>`<label class="field">${label}${inner}</label>`;
+const contactOptions=sel=>db.contacts.slice().sort((a,b)=>a.entreprise.localeCompare(b.entreprise)).map(c=>`<option value="${c.id}" ${c.id===sel?"selected":""}>${esc(c.entreprise)} (${esc(c.nom)})</option>`).join("");
+const btns=lbl=>`<div class="actions"><button class="btn ghost" data-close>Annuler</button><button class="btn" type="submit">${lbl}</button></div>`;
+
+function contactForm(c){
+  c=c||{nom:"",entreprise:"",email:"",tel:"",ville:"",statut:"prospect",tag:""};
+  modal(`<h3>${c.id?"Modifier le contact":"Nouveau contact"}</h3>
+  <div class="two">${f("Entreprise",`<input name="entreprise" id="f-ent" value="${esc(c.entreprise)}" required>`)}${f("Nom du contact",`<input name="nom" id="f-nom" value="${esc(c.nom)}" required>`)}</div>
+  <div class="two">${f("E-mail",`<input name="email" id="f-mail" type="email" value="${esc(c.email)}">`)}${f("Téléphone",`<input name="tel" id="f-tel" value="${esc(c.tel)}">`)}</div>
+  <div class="two">${f("Ville",`<input name="ville" id="f-ville" value="${esc(c.ville)}">`)}${f("Statut",`<select name="statut" id="f-statut">${Object.entries(STATUTS).map(([k,l])=>`<option value="${k}" ${c.statut===k?"selected":""}>${l}</option>`).join("")}</select>`)}</div>
+  ${f("Besoin",`<input name="tag" id="f-tag" value="${esc(c.tag)}" placeholder="ex. site vitrine, réseau, maintenance">`)}
+  ${btns(c.id?"Enregistrer":"Créer le contact")}`,d=>{
+    if(!d.entreprise.trim()||!d.nom.trim())return "Indiquez au moins l'entreprise et le nom du contact.";
+    if(d.email&&!/^\S+@\S+\.\S+$/.test(d.email))return "L'adresse e-mail n'est pas valide (exemple : nom@domaine.fr).";
+    if(c.id){Object.assign(contact(c.id),d);toast("Contact enregistré")}
+    else{const n={id:uid(),cree:iso(Date.now()),...d};db.contacts.push(n);toast("Contact créé")}
+    save();
+  });
+}
+function oppForm(cid){
+  if(!db.contacts.length){toast("Créez d'abord un contact");return}
+  modal(`<h3>Nouvelle opportunité</h3>
+  ${f("Contact",`<select name="contactId" id="o-c">${contactOptions(cid)}</select>`)}
+  ${f("Intitulé",`<input name="titre" id="o-t" required placeholder="ex. Site vitrine 5 pages">`)}
+  <div class="two">${f("Montant (€ HT)",`<input name="montant" id="o-m" type="number" min="0" step="50" required>`)}${f("Clôture prévue",`<input name="cloture" id="o-d" type="date" value="${rel(30)}">`)}</div>
+  ${f("Étape",`<select name="etape" id="o-e">${STAGES.map(([k,l])=>`<option value="${k}">${l}</option>`).join("")}</select>`)}
+  ${btns("Créer l'opportunité")}`,d=>{
+    if(!d.titre.trim())return "Donnez un intitulé à l'opportunité.";
+    if(!(+d.montant>=0)||d.montant==="")return "Indiquez un montant en euros.";
+    db.opps.push({id:uid(),...d,montant:+d.montant});save();toast("Opportunité créée");
+  });
+}
+function actForm(cid){
+  if(!db.contacts.length){toast("Créez d'abord un contact");return}
+  modal(`<h3>Nouvelle activité</h3>
+  ${f("Contact",`<select name="contactId" id="a-c">${contactOptions(cid)}</select>`)}
+  <div class="two">${f("Type",`<select name="type" id="a-t">${Object.entries(TYPES).map(([k,l])=>`<option value="${k}">${l}</option>`).join("")}</select>`)}${f("Date",`<input name="date" id="a-d" type="date" value="${rel(1)}">`)}</div>
+  ${f("Description",`<textarea name="texte" id="a-x" rows="3" required placeholder="ex. Rappeler pour fixer un rendez-vous"></textarea>`)}
+  ${btns("Ajouter")}`,d=>{
+    if(!d.texte.trim())return "Décrivez l'activité en quelques mots.";
+    db.acts.push({id:uid(),...d,faite:false});save();toast("Activité ajoutée");
+  });
+}
+function confirmDelete(c){
+  const n=db.opps.filter(o=>o.contactId===c.id).length+db.acts.filter(a=>a.contactId===c.id).length;
+  modal(`<h3>Supprimer ${esc(c.entreprise)} ?</h3><p style="margin:0;color:var(--muted)">La fiche et ${n} élément(s) liés (opportunités et activités) seront supprimés définitivement.</p>
+  <div class="actions"><button class="btn ghost" data-close>Annuler</button><button class="btn danger" type="submit">Supprimer</button></div>`,()=>{
+    db.contacts=db.contacts.filter(x=>x.id!==c.id);db.opps=db.opps.filter(o=>o.contactId!==c.id);db.acts=db.acts.filter(a=>a.contactId!==c.id);
+    save();state.view="contacts";toast("Contact supprimé");
+  });
+}
+function confirmWipe(){
+  modal(`<h3>Effacer toutes les données ?</h3><p style="margin:0;color:var(--muted)">${db.contacts.length} contact(s), ${db.opps.length} opportunité(s) et ${db.acts.length} activité(s) seront supprimés définitivement. Pensez à copier la sauvegarde avant.</p>
+  <div class="actions"><button class="btn ghost" data-close>Annuler</button><button class="btn danger" type="submit">Tout effacer</button></div>`,()=>{
+    db=blank();save();state.view="dash";toast("Données effacées");
+  });
+}
+function copyBackup(){
+  const txt=JSON.stringify(db);const ta=document.getElementById("s-backup");
+  const fallback=()=>{ta.value=txt;ta.focus();ta.select();toast("Sauvegarde affichée : copiez-la (Ctrl+C)")};
+  try{navigator.clipboard.writeText(txt).then(()=>toast("Sauvegarde copiée"),fallback)}catch(e){fallback()}
+}
+function restore(){
+  const raw=document.getElementById("s-backup").value.trim();
+  if(!raw){toast("Collez d'abord une sauvegarde dans le champ");return}
+  let d;try{d=JSON.parse(raw)}catch(e){toast("Sauvegarde illisible : vérifiez qu'elle est complète");return}
+  if(!d||!Array.isArray(d.contacts)||!Array.isArray(d.opps)||!Array.isArray(d.acts)){toast("Ce texte n'est pas une sauvegarde Carnet");return}
+  db=Object.assign(blank(),d);save();state.view="dash";render();toast("Données restaurées");
+}
+
+/* ---------- Événements ---------- */
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-act],[data-view].tab");if(!t)return;
+  if(t.classList.contains("tab")){state.view=t.dataset.view;render();window.scrollTo(0,0);return}
+  const act=t.dataset.act,id=t.dataset.id;
+  if(act==="toggle")return;
+  if(act==="move")return;
+  e.preventDefault();
+  if(act==="open"){state.view="fiche";state.contactId=id;render();window.scrollTo(0,0)}
+  else if(act==="go"){state.view=t.dataset.view;render()}
+  else if(act==="new-contact")contactForm();
+  else if(act==="edit-contact")contactForm(contact(id));
+  else if(act==="del-contact")confirmDelete(contact(id));
+  else if(act==="new-opp")oppForm(t.dataset.cid||state.contactId);
+  else if(act==="new-act")actForm(t.dataset.cid||state.contactId);
+  else if(act==="wipe")confirmWipe();
+  else if(act==="copy")copyBackup();
+  else if(act==="restore")restore();
+});
+document.addEventListener("submit",e=>{if(e.target.id!=="setform")return;e.preventDefault();
+  const d=Object.fromEntries(new FormData(e.target));
+  if(d.coemail&&!/^\S+@\S+\.\S+$/.test(d.coemail)){toast("L'adresse e-mail n'est pas valide");return}
+  db.company=d.company.trim();db.secteur=d.secteur.trim();db.coemail=d.coemail.trim();save();render();toast("Paramètres enregistrés")});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.matches("tr[data-act=open]"))e.target.click()});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.act==="toggle"){const a=db.acts.find(x=>x.id===t.dataset.id);a.faite=t.checked;save();render();toast(a.faite?"Relance terminée":"Relance rouverte")}
+  else if(t.dataset.act==="move"){moveOpp(t.dataset.id,t.value)}
+  else if(t.id==="fstatut"){state.statut=t.value;render()}
+});
+document.addEventListener("input",e=>{if(e.target.id==="q"){state.q=e.target.value;const pos=e.target.selectionStart;render();const q=document.getElementById("q");q.focus();q.setSelectionRange(pos,pos)}});
+function moveOpp(id,stage){const o=db.opps.find(x=>x.id===id);if(!o||o.etape===stage)return;o.etape=stage;
+  if(stage==="gagne"){const c=contact(o.contactId);if(c)c.statut="client"}
+  save();render();toast("Déplacé vers « "+STAGE_LABEL[stage]+" »")}
+let dragId=null;
+document.addEventListener("dragstart",e=>{const c=e.target.closest(".card");if(c){dragId=c.dataset.id;e.dataTransfer.effectAllowed="move";try{e.dataTransfer.setData("text/plain",dragId)}catch(_){}}});
+document.addEventListener("dragover",e=>{const col=e.target.closest(".col");if(col&&dragId){e.preventDefault();document.querySelectorAll(".col.over").forEach(x=>x!==col&&x.classList.remove("over"));col.classList.add("over")}});
+document.addEventListener("dragleave",e=>{const col=e.target.closest(".col");if(col&&!col.contains(e.relatedTarget))col.classList.remove("over")});
+document.addEventListener("drop",e=>{const col=e.target.closest(".col");if(col&&dragId){e.preventDefault();moveOpp(dragId,col.dataset.stage)}dragId=null});
+document.addEventListener("dragend",()=>{dragId=null;document.querySelectorAll(".col.over").forEach(x=>x.classList.remove("over"))});
+
+render();
+})();
+</script>
+
+</body>
+</html>
